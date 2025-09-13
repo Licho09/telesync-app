@@ -1,0 +1,8 @@
+# TeleSync Telegram Downloader Dependencies
+telethon>=1.28.5
+asyncio
+pathlib
+
+
+
+

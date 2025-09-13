@@ -1,0 +1,13 @@
+{
+  "channels": [
+    "@channelname1",
+    "@channelname2",
+    "https://t.me/channelname3"
+  ],
+  "download_path": "downloads",
+  "last_updated": "2024-01-01T00:00:00"
+}
+
+
+
+

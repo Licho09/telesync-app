@@ -1,0 +1,45 @@
+services:
+  # Frontend Service
+  - type: web
+    name: telesync-frontend
+    env: static
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://telesync-backend.onrender.com/api
+      - key: VITE_WS_URL
+        value: wss://telesync-backend.onrender.com
+      - key: VITE_SUPABASE_URL
+        fromService:
+          type: web
+          name: telesync-backend
+          envVarKey: VITE_SUPABASE_URL
+      - key: VITE_SUPABASE_ANON_KEY
+        fromService:
+          type: web
+          name: telesync-backend
+          envVarKey: VITE_SUPABASE_ANON_KEY
+
+  # Backend Service
+  - type: web
+    name: telesync-backend
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm run server
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: VITE_SUPABASE_URL
+        sync: false
+      - key: VITE_SUPABASE_ANON_KEY
+        sync: false
+
