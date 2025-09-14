@@ -139,10 +139,14 @@ const Dashboard: React.FC = () => {
     if (!user?.id) return;
     
     try {
+      console.log('Checking Telegram connection for user:', user.id);
       const response = await fetch(`/api/telegram/status/${user.id}`);
       if (response.ok) {
         const data = await response.json();
+        console.log('Telegram connection status response:', data);
         setTelegramConnected(data.data.isConnected);
+      } else {
+        console.error('Failed to get connection status:', response.status);
       }
     } catch (error) {
       console.error('Error checking Telegram connection:', error);
@@ -498,6 +502,8 @@ const Dashboard: React.FC = () => {
       });
 
       if (response.ok) {
+        const result = await response.json();
+        console.log('Verification successful, response:', result);
         toast.success('Telegram authentication successful!');
         setShowVerificationCodeForm(false);
         setVerificationCode('');

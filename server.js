@@ -638,6 +638,9 @@ app.post('/api/telegram/verify-and-connect', (req, res) => {
     createdAt: new Date().toISOString()
   };
   
+  console.log(`Created Telegram session for user: ${userId}`);
+  console.log('Session data:', userTelegramSessions[userId]);
+  
   // Initialize user's channels and downloads if not exists
   if (!userChannels[userId]) {
     userChannels[userId] = [];
@@ -667,6 +670,10 @@ app.get('/api/telegram/status/:userId', (req, res) => {
   const { userId } = req.params;
   const session = userTelegramSessions[userId];
   
+  console.log(`Checking Telegram status for user: ${userId}`);
+  console.log('Available sessions:', Object.keys(userTelegramSessions));
+  console.log('Session data:', session);
+  
   if (!session) {
     return res.json({ 
       success: true, 
@@ -683,7 +690,7 @@ app.get('/api/telegram/status/:userId', (req, res) => {
       isConnected: session.isConnected,
       phone: session.phone ? session.phone.replace(/(\d{3})\d{4}(\d{3})/, '$1****$2') : null,
       lastConnected: session.lastConnected
-    } 
+    }
   });
 });
 
