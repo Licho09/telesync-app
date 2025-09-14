@@ -140,7 +140,11 @@ const Dashboard: React.FC = () => {
     
     try {
       console.log('Checking Telegram connection for user:', user.id);
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
+      let API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
+      // Ensure API_BASE_URL ends with /api
+      if (!API_BASE_URL.endsWith('/api')) {
+        API_BASE_URL = API_BASE_URL.endsWith('/') ? `${API_BASE_URL}api` : `${API_BASE_URL}/api`;
+      }
       const response = await fetch(`${API_BASE_URL}/telegram/status/${user.id}`);
       if (response.ok) {
         const data = await response.json();
@@ -468,7 +472,11 @@ const Dashboard: React.FC = () => {
     if (!user?.id) return;
     
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
+      let API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
+      // Ensure API_BASE_URL ends with /api
+      if (!API_BASE_URL.endsWith('/api')) {
+        API_BASE_URL = API_BASE_URL.endsWith('/') ? `${API_BASE_URL}api` : `${API_BASE_URL}/api`;
+      }
       const response = await fetch(`${API_BASE_URL}/telegram/credentials/${user.id}`);
       if (response.ok) {
         const data = await response.json();
@@ -491,7 +499,11 @@ const Dashboard: React.FC = () => {
 
   const handleVerifyCode = async () => {
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
+      let API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
+      // Ensure API_BASE_URL ends with /api
+      if (!API_BASE_URL.endsWith('/api')) {
+        API_BASE_URL = API_BASE_URL.endsWith('/') ? `${API_BASE_URL}api` : `${API_BASE_URL}/api`;
+      }
       const response = await fetch(`${API_BASE_URL}/telegram/verify-and-connect`, {
         method: 'POST',
         headers: {
@@ -523,7 +535,11 @@ const Dashboard: React.FC = () => {
 
   const handleSendVerificationCode = async () => {
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
+      let API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
+      // Ensure API_BASE_URL ends with /api
+      if (!API_BASE_URL.endsWith('/api')) {
+        API_BASE_URL = API_BASE_URL.endsWith('/') ? `${API_BASE_URL}api` : `${API_BASE_URL}/api`;
+      }
       const response = await fetch(`${API_BASE_URL}/telegram/send-code`, {
         method: 'POST',
         headers: {
@@ -557,7 +573,11 @@ const Dashboard: React.FC = () => {
       }
 
       // Save to backend
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
+      let API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
+      // Ensure API_BASE_URL ends with /api
+      if (!API_BASE_URL.endsWith('/api')) {
+        API_BASE_URL = API_BASE_URL.endsWith('/') ? `${API_BASE_URL}api` : `${API_BASE_URL}/api`;
+      }
       const response = await fetch(`${API_BASE_URL}/telegram/save-credentials`, {
         method: 'POST',
         headers: {
@@ -937,7 +957,11 @@ const Dashboard: React.FC = () => {
                     onClick={async () => {
                       try {
                         // Refresh Discord channels
-                        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
+                        let API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
+                        // Ensure API_BASE_URL ends with /api
+                        if (!API_BASE_URL.endsWith('/api')) {
+                          API_BASE_URL = API_BASE_URL.endsWith('/') ? `${API_BASE_URL}api` : `${API_BASE_URL}/api`;
+                        }
                         const response = await fetch(`${API_BASE_URL}/channels/refresh`);
                         const result = await response.json();
                         if (result.success) {
