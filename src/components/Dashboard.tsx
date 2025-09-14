@@ -1181,6 +1181,61 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
+      {/* Verification Code Modal */}
+      {showVerificationCodeForm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-slate-800 rounded-xl border border-slate-700/50 p-6 max-w-md w-full mx-4">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="p-2 bg-blue-500/20 rounded-lg">
+                <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold text-white">Enter Verification Code</h3>
+                <p className="text-sm text-slate-400">
+                  Code sent to {apiCredentials.phoneNumber}
+                </p>
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Verification Code
+                </label>
+                <input
+                  type="text"
+                  value={verificationCode}
+                  onChange={(e) => setVerificationCode(e.target.value)}
+                  className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="123456"
+                  maxLength={6}
+                />
+                <p className="text-xs text-slate-500 mt-1">
+                  💡 For demo purposes, use: <code className="bg-slate-600 px-1 rounded">123456</code> or <code className="bg-slate-600 px-1 rounded">demo</code>
+                </p>
+              </div>
+              
+              <div className="flex space-x-3">
+                <button
+                  onClick={handleVerifyCode}
+                  className="flex-1 px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium"
+                >
+                  Verify Code
+                </button>
+                <button
+                  onClick={() => setShowVerificationCodeForm(false)}
+                  className="px-4 py-3 text-slate-300 bg-slate-700/50 rounded-lg hover:bg-slate-600/50 transition-colors font-medium border border-slate-600/50"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Settings Modal - Dark Theme */}
       {showSettings && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
@@ -1598,49 +1653,6 @@ const Dashboard: React.FC = () => {
                   </div>
                 )}
 
-                {/* Verification Code Form */}
-                {showVerificationCodeForm && (
-                  <div className="space-y-6">
-                    <div>
-                      <h4 className="text-xl font-medium text-white mb-2">Enter Verification Code</h4>
-                      <p className="text-sm text-slate-400 mb-4">
-                        Enter the 6-digit code sent to your phone number: {apiCredentials.phoneNumber}
-                      </p>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-2">
-                          Verification Code
-                        </label>
-                        <input
-                          type="text"
-                          value={verificationCode}
-                          onChange={(e) => setVerificationCode(e.target.value)}
-                          className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          placeholder="123456"
-                          maxLength={6}
-                        />
-                        <p className="text-xs text-slate-500 mt-1">
-                          💡 For demo purposes, you can use: <code className="bg-slate-600 px-1 rounded">123456</code> or <code className="bg-slate-600 px-1 rounded">demo</code>
-                        </p>
-                      </div>
-                      
-                      <div className="flex space-x-3 mt-4">
-                        <button
-                          onClick={handleVerifyCode}
-                          className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg hover:from-blue-600 hover:to-cyan-600 transition-all duration-200 font-medium shadow-lg"
-                        >
-                          Verify Code
-                        </button>
-                        <button
-                          onClick={() => setShowVerificationCodeForm(false)}
-                          className="px-6 py-3 text-slate-300 bg-slate-700/50 rounded-lg hover:bg-slate-600/50 transition-all duration-200 font-medium border border-slate-600/50"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
             
