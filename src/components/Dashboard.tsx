@@ -96,7 +96,7 @@ const Dashboard: React.FC = () => {
         
         setChannels(channelsData);
         setDownloads(downloadsData);
-        setDownloadPath(settingsData.download_path || 'discord_downloads');
+        setDownloadPath(settingsData.download_path || '');
       } catch (error) {
         console.error('Error loading data:', error);
         toast.error('Failed to load data');

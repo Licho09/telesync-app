@@ -16,7 +16,7 @@ app.use(express.json());
 
 // Mock data storage (in production, use a real database)
 let settings = {
-  downloadPath: 'discord_downloads'
+  downloadPath: ''
 };
 
 // User-specific data storage
@@ -56,39 +56,7 @@ function loadDiscordChannels() {
 let channels = loadDiscordChannels();
 
 // Store real downloads from Discord bot
-let downloads = [
-  // Add some sample downloads to show how it should look
-  {
-    id: 'sample_1',
-    url: 'https://www.youtube.com/watch?v=example1',
-    title: 'Sample Video 1',
-    filename: 'sample_video_1.mp4',
-    size: 25000000,
-    size_formatted: '25.0 MB',
-    channel: '#-videos',
-    source: 'youtube',
-    status: 'completed',
-    progress: 100,
-    createdAt: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
-    completedAt: new Date(Date.now() - 4 * 60 * 1000).toISOString(),
-    timestamp: new Date(Date.now() - 4 * 60 * 1000).toISOString()
-  },
-  {
-    id: 'sample_2',
-    url: 'https://www.youtube.com/watch?v=example2',
-    title: 'Sample Video 2',
-    filename: 'sample_video_2.mp4',
-    size: 18000000,
-    size_formatted: '18.0 MB',
-    channel: '#-videos',
-    source: 'youtube',
-    status: 'completed',
-    progress: 100,
-    createdAt: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
-    completedAt: new Date(Date.now() - 9 * 60 * 1000).toISOString(),
-    timestamp: new Date(Date.now() - 9 * 60 * 1000).toISOString()
-  }
-];
+let downloads = [];
 
 // Function to add a new download
 function addDownload(downloadData) {
