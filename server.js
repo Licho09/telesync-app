@@ -529,7 +529,17 @@ function startTelegramMonitor(userId, phone) {
       phoneNumber
     ], {
       detached: true,
-      stdio: 'ignore'
+      stdio: ['ignore', 'pipe', 'pipe'],
+      env: { ...process.env, WEB_APP_URL: process.env.WEB_APP_URL || 'http://localhost:3001' }
+    });
+    
+    // Capture output for debugging
+    monitorProcess.stdout.on('data', (data) => {
+      console.log(`[TELEGRAM MONITOR ${userId}] ${data.toString().trim()}`);
+    });
+    
+    monitorProcess.stderr.on('data', (data) => {
+      console.error(`[TELEGRAM MONITOR ${userId} ERROR] ${data.toString().trim()}`);
     });
     
     // Store the process reference

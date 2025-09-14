@@ -59,6 +59,7 @@ class TelegramMonitor:
         
         # Web app connection - use environment variable or fallback to localhost
         self.web_app_url = os.getenv('WEB_APP_URL', 'http://localhost:3001')
+        logger.info(f"Using web app URL: {self.web_app_url}")
         
         # Statistics
         self.stats = {
