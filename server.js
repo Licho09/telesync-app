@@ -520,56 +520,51 @@ function startTelegramMonitor(userId, phone) {
     
     console.log(`[TELEGRAM] Starting monitor for user ${userId} with phone ${phoneNumber}`);
     
-    // Install Python packages first, then start the monitor
-    console.log(`[TELEGRAM] Installing Python packages for user ${userId}...`);
-    
-    const installProcess = spawn('pip', ['install', '-r', 'requirements.txt'], {
-      stdio: 'pipe'
+    // Start the Telegram monitor process with appropriate credentials
+    const monitorProcess = spawn('python', [
+      'start_telegram_monitor.py',
+      userId,
+      apiId,
+      apiHash,
+      phoneNumber
+    ], {
+      detached: true,
+      stdio: ['ignore', 'pipe', 'pipe'],
+      env: { ...process.env, WEB_APP_URL: process.env.WEB_APP_URL || 'http://localhost:3001' }
     });
     
-    installProcess.on('close', (installCode) => {
-      if (installCode === 0) {
-        console.log(`[TELEGRAM] Python packages installed successfully for user ${userId}`);
-        
-        // Now start the Telegram monitor process
-        const monitorProcess = spawn('python', [
-          'start_telegram_monitor.py',
-          userId,
-          apiId,
-          apiHash,
-          phoneNumber
-        ], {
-          detached: true,
-          stdio: ['ignore', 'pipe', 'pipe'],
-          env: { ...process.env, WEB_APP_URL: process.env.WEB_APP_URL || 'http://localhost:3001' }
-        });
-        
-        // Capture output for debugging
-        monitorProcess.stdout.on('data', (data) => {
-          console.log(`[TELEGRAM MONITOR ${userId}] ${data.toString().trim()}`);
-        });
-        
-        monitorProcess.stderr.on('data', (data) => {
-          console.error(`[TELEGRAM MONITOR ${userId} ERROR] ${data.toString().trim()}`);
-        });
-        
-        // Store the process reference
-        userTelegramMonitors[userId] = {
-          process: monitorProcess,
-          startedAt: new Date().toISOString(),
-          phone: phoneNumber,
-          usingIndividualCredentials: !!userCredentials
-        };
-        
-        console.log(`[TELEGRAM] Monitor started successfully for user ${userId} (PID: ${monitorProcess.pid})`);
-      } else {
-        console.error(`[TELEGRAM] Failed to install Python packages for user ${userId} (exit code: ${installCode})`);
-      }
+    // Capture output for debugging
+    monitorProcess.stdout.on('data', (data) => {
+      console.log(`[TELEGRAM MONITOR ${userId}] ${data.toString().trim()}`);
     });
     
-    installProcess.on('error', (error) => {
-      console.error(`[TELEGRAM] Error installing Python packages for user ${userId}: ${error}`);
+    monitorProcess.stderr.on('data', (data) => {
+      console.error(`[TELEGRAM MONITOR ${userId} ERROR] ${data.toString().trim()}`);
     });
+    
+    // Store the process reference
+    userTelegramMonitors[userId] = {
+      process: monitorProcess,
+      startedAt: new Date().toISOString(),
+      phone: phoneNumber,
+      usingIndividualCredentials: !!userCredentials
+    };
+    
+    // Handle process events
+    monitorProcess.on('error', (error) => {
+      console.error(`[TELEGRAM] Monitor error for user ${userId}:`, error);
+      delete userTelegramMonitors[userId];
+    });
+    
+    monitorProcess.on('exit', (code) => {
+      console.log(`[TELEGRAM] Monitor exited for user ${userId} with code ${code}`);
+      delete userTelegramMonitors[userId];
+    });
+    
+    // Unref to allow the main process to exit independently
+    monitorProcess.unref();
+    
+    console.log(`[TELEGRAM] Monitor started successfully for user ${userId} (PID: ${monitorProcess.pid})`);
     
   } catch (error) {
     console.error(`[TELEGRAM] Failed to start monitor for user ${userId}:`, error);

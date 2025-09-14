@@ -24,7 +24,10 @@ services:
     name: telesync-backend
     env: node
     plan: free
-    buildCommand: npm install && python3 -m pip install -r requirements.txt
+    buildCommand: |
+      npm install
+      pip install --upgrade pip
+      pip install -r requirements.txt
     startCommand: npm run server
     healthCheckPath: /api/health
     envVars:
