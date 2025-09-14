@@ -130,8 +130,24 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     if (user?.id) {
       loadCredentialsStatus();
+      checkTelegramConnection();
     }
   }, [user?.id]);
+
+  // Check Telegram connection status
+  const checkTelegramConnection = async () => {
+    if (!user?.id) return;
+    
+    try {
+      const response = await fetch(`/api/telegram/status/${user.id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setTelegramConnected(data.data.isConnected);
+      }
+    } catch (error) {
+      console.error('Error checking Telegram connection:', error);
+    }
+  };
 
   // Combine Discord and Telegram channels
   useEffect(() => {
@@ -486,6 +502,7 @@ const Dashboard: React.FC = () => {
         setShowVerificationCodeForm(false);
         setVerificationCode('');
         await loadCredentialsStatus();
+        await checkTelegramConnection(); // Check connection status after successful auth
       } else {
         throw new Error('Failed to verify code');
       }
@@ -548,6 +565,9 @@ const Dashboard: React.FC = () => {
         
         // Trigger authentication flow
         await handleSendVerificationCode();
+        
+        // Check connection status after saving credentials
+        await checkTelegramConnection();
       } else {
         throw new Error('Failed to save credentials');
       }
@@ -792,6 +812,13 @@ const Dashboard: React.FC = () => {
                   >
                     <Settings className="w-4 h-4" />
                     <span>Setup Telegram Connection</span>
+                  </button>
+                  <button
+                    onClick={checkTelegramConnection}
+                    className="inline-flex items-center space-x-2 bg-slate-700/50 text-slate-300 px-6 py-3 rounded-lg hover:bg-slate-600/50 transition-colors border border-slate-600"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                    <span>Refresh Connection Status</span>
                   </button>
                   <button
                     onClick={() => {
