@@ -8,7 +8,6 @@ import asyncio
 import json
 import logging
 import os
-import websockets
 import requests
 import subprocess
 import re
