@@ -200,9 +200,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
       
       console.log('Email/password sign up successful:', data);
+      console.log('User:', data.user);
+      console.log('Session:', data.session);
       
       // If user is immediately confirmed (no email confirmation required)
       if (data.user && data.session) {
+        console.log('User and session found, setting user state');
         setUser({
           id: data.user.id,
           email: data.user.email || '',
@@ -211,20 +214,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         });
       } else if (data.user) {
         // User created but no session yet - try to sign in immediately
-        console.log('User created, attempting immediate sign in...');
+        console.log('User created but no session, attempting immediate sign in...');
         const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
         
+        console.log('Sign in result:', signInData);
+        console.log('Sign in error:', signInError);
+        
         if (signInData.user && signInData.session) {
+          console.log('Sign in successful, setting user state');
           setUser({
             id: signInData.user.id,
             email: signInData.user.email || '',
             name: signInData.user.user_metadata?.full_name,
             avatar_url: signInData.user.user_metadata?.avatar_url,
           });
+        } else {
+          console.log('Sign in failed, user may need to sign in manually');
         }
+      } else {
+        console.log('No user returned from signup');
       }
     } catch (error) {
       console.error('Error signing up with email:', error);
