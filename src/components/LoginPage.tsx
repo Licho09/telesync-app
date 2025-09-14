@@ -6,9 +6,11 @@ import toast from 'react-hot-toast';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
-  const { signInWithGoogle, signInWithEmail } = useAuth();
+  const { signInWithGoogle, signInWithEmail, signUpWithEmail } = useAuth();
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
 
   const handleGoogleLogin = async () => {
     try {
@@ -23,20 +25,25 @@ const LoginPage: React.FC = () => {
     }
   };
 
-  const handleEmailLogin = async (e: React.FormEvent) => {
+  const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) {
-      toast.error('Please enter your email address');
+    if (!email || !password) {
+      toast.error('Please enter both email and password');
       return;
     }
 
     try {
       setIsLoading(true);
-      await signInWithEmail(email);
-      toast.success('Check your email for the login link!');
-    } catch (error) {
-      toast.error('Failed to send login email');
-      console.error('Email login error:', error);
+      if (isSignUp) {
+        await signUpWithEmail(email, password);
+        toast.success('Account created successfully!');
+      } else {
+        await signInWithEmail(email, password);
+        toast.success('Signed in successfully!');
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Authentication failed');
+      console.error('Email auth error:', error);
     } finally {
       setIsLoading(false);
     }
@@ -67,10 +74,10 @@ const LoginPage: React.FC = () => {
         </div>
 
         <h2 className="mt-8 text-center text-2xl font-semibold text-gray-900">
-          Sign in to your account
+          {isSignUp ? 'Create your account' : 'Sign in to your account'}
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
-          Start automating your Telegram downloads
+          {isSignUp ? 'Join TeleSync and start automating your downloads' : 'Start automating your Telegram downloads'}
         </p>
         
         {/* Demo Mode Indicator */}
@@ -102,7 +109,7 @@ const LoginPage: React.FC = () => {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow-sm sm:rounded-lg sm:px-10 border border-gray-200">
           <div className="space-y-6">
-            <form onSubmit={handleEmailLogin} className="space-y-6">
+            <form onSubmit={handleEmailAuth} className="space-y-6">
               {/* Email Input */}
               <div>
                 <label htmlFor="email" className="sr-only">
@@ -122,14 +129,44 @@ const LoginPage: React.FC = () => {
                 />
               </div>
 
-              {/* Sign In Button */}
+              {/* Password Input */}
+              <div>
+                <label htmlFor="password" className="sr-only">
+                  Password
+                </label>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autoComplete={isSignUp ? "new-password" : "current-password"}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={isLoading}
+                  className="appearance-none rounded-lg relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 focus:z-10 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  placeholder="Enter your password..."
+                />
+              </div>
+
+              {/* Sign In/Up Button */}
               <div>
                 <button
                   type="submit"
                   disabled={isLoading}
                   className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isLoading ? 'Sending...' : 'Sign in'}
+                  {isLoading ? (isSignUp ? 'Creating...' : 'Signing in...') : (isSignUp ? 'Create Account' : 'Sign in')}
+                </button>
+              </div>
+
+              {/* Toggle Sign Up/Sign In */}
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={() => setIsSignUp(!isSignUp)}
+                  className="text-sm text-gray-600 hover:text-gray-800 underline"
+                >
+                  {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
                 </button>
               </div>
             </form>

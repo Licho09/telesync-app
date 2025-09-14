@@ -32,7 +32,8 @@ interface AuthContextType {
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
-  signInWithEmail: (email: string) => Promise<void>;
+  signInWithEmail: (email: string, password: string) => Promise<void>;
+  signUpWithEmail: (email: string, password: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -136,7 +137,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const signInWithEmail = async (email: string) => {
+  const signInWithEmail = async (email: string, password: string) => {
     if (isDemoMode) {
       // Demo mode - simulate successful login
       setUser({
@@ -151,22 +152,53 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       if (!supabase) throw new Error('Supabase not initialized');
       
-      console.log('Attempting email OTP sign in for:', email);
-      const { data, error } = await supabase.auth.signInWithOtp({
+      console.log('Attempting email/password sign in for:', email);
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
-        },
+        password,
       });
       
       if (error) {
-        console.error('Email OTP error:', error);
+        console.error('Email/password sign in error:', error);
         throw error;
       }
       
-      console.log('Email OTP sent successfully:', data);
+      console.log('Email/password sign in successful:', data);
     } catch (error) {
       console.error('Error signing in with email:', error);
+      throw error;
+    }
+  };
+
+  const signUpWithEmail = async (email: string, password: string) => {
+    if (isDemoMode) {
+      // Demo mode - simulate successful signup
+      setUser({
+        id: 'demo-user-123',
+        email: email,
+        name: 'Demo User',
+        avatar_url: undefined,
+      });
+      return;
+    }
+
+    try {
+      if (!supabase) throw new Error('Supabase not initialized');
+      
+      console.log('Attempting email/password sign up for:', email);
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+      
+      if (error) {
+        console.error('Email/password sign up error:', error);
+        throw error;
+      }
+      
+      console.log('Email/password sign up successful:', data);
+    } catch (error) {
+      console.error('Error signing up with email:', error);
       throw error;
     }
   };
@@ -194,6 +226,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     loading,
     signInWithGoogle,
     signInWithEmail,
+    signUpWithEmail,
     signOut,
   };
 
