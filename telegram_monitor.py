@@ -57,8 +57,8 @@ class TelegramMonitor:
         self.base_download_path = None
         self.download_path = None
         
-        # Web app connection
-        self.web_app_url = "http://localhost:3001"
+        # Web app connection - use environment variable or fallback to localhost
+        self.web_app_url = os.getenv('WEB_APP_URL', 'http://localhost:3001')
         
         # Statistics
         self.stats = {
