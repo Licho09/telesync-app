@@ -671,7 +671,10 @@ app.post('/api/telegram/verify-and-connect', (req, res) => {
   console.log(`[DEMO] User ${userId} connected to Telegram with phone ${phone}`);
   
   // Start the Telegram monitor for this user
-  startTelegramMonitor(userId, phone);
+  // Note: Python monitor disabled on Render due to dependency issues
+  // Uncomment the line below to enable local monitoring
+  // startTelegramMonitor(userId, phone);
+  console.log(`[TELEGRAM] Monitor startup disabled - Python dependencies not available on Render`);
   
   res.json({ 
     success: true, 
@@ -1073,9 +1076,11 @@ app.post('/api/telegram/save-credentials', (req, res) => {
       delete userTelegramMonitors[userId];
       
       // Start new monitor with updated credentials
-      setTimeout(() => {
-        startTelegramMonitor(userId, phoneNumber);
-      }, 1000); // Small delay to ensure clean shutdown
+      // Note: Python monitor disabled on Render due to dependency issues
+      // setTimeout(() => {
+      //   startTelegramMonitor(userId, phoneNumber);
+      // }, 1000); // Small delay to ensure clean shutdown
+      console.log(`[TELEGRAM] Monitor restart disabled - Python dependencies not available on Render`);
     }
     
     res.json({ 
