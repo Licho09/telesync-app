@@ -6,9 +6,19 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://your-project.s
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key';
 
 // Demo mode - bypass authentication if no real credentials are provided
-const isDemoMode = !import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL.includes('your-project');
+const isDemoMode = !import.meta.env.VITE_SUPABASE_URL || 
+  import.meta.env.VITE_SUPABASE_URL.includes('your-project') ||
+  import.meta.env.VITE_SUPABASE_ANON_KEY.includes('your-supabase-anon-key');
 
 const supabase = isDemoMode ? null : createClient(supabaseUrl, supabaseKey);
+
+// Debug logging
+if (!isDemoMode) {
+  console.log('Supabase initialized with URL:', supabaseUrl);
+  console.log('Supabase key configured:', supabaseKey ? 'Yes' : 'No');
+} else {
+  console.log('Running in demo mode - Supabase authentication disabled');
+}
 
 interface User {
   id: string;
@@ -106,13 +116,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       if (!supabase) throw new Error('Supabase not initialized');
       
-      const { error } = await supabase.auth.signInWithOAuth({
+      console.log('Attempting Google OAuth sign in...');
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/dashboard`,
         },
       });
-      if (error) throw error;
+      
+      if (error) {
+        console.error('Google OAuth error:', error);
+        throw error;
+      }
+      
+      console.log('Google OAuth initiated successfully:', data);
     } catch (error) {
       console.error('Error signing in with Google:', error);
       throw error;
@@ -134,13 +151,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       if (!supabase) throw new Error('Supabase not initialized');
       
-      const { error } = await supabase.auth.signInWithOtp({
+      console.log('Attempting email OTP sign in for:', email);
+      const { data, error } = await supabase.auth.signInWithOtp({
         email,
         options: {
           emailRedirectTo: `${window.location.origin}/dashboard`,
         },
       });
-      if (error) throw error;
+      
+      if (error) {
+        console.error('Email OTP error:', error);
+        throw error;
+      }
+      
+      console.log('Email OTP sent successfully:', data);
     } catch (error) {
       console.error('Error signing in with email:', error);
       throw error;

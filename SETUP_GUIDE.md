@@ -49,8 +49,8 @@ cp .env.example .env
 
 Edit `.env` with your Supabase credentials (optional for demo):
 ```env
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+VITE_SUPABASE_URL=https://iausgqikbmhkkicmuzei.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlhdXNncWlrYm1oa2tpY211emVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc3OTQ2NjEsImV4cCI6MjA3MzM3MDY2MX0.EGXA8llbbTQ3QvhttQN_sIklVM0ymBQ0VZ2qYva45js
 VITE_API_BASE_URL=http://localhost:3001/api
 VITE_WS_URL=ws://localhost:3001/ws
 ```

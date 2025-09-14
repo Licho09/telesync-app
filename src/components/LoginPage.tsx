@@ -74,10 +74,26 @@ const LoginPage: React.FC = () => {
         </p>
         
         {/* Demo Mode Indicator */}
-        {(!import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL.includes('your-project')) && (
+        {(!import.meta.env.VITE_SUPABASE_URL || 
+          import.meta.env.VITE_SUPABASE_URL.includes('your-project') ||
+          import.meta.env.VITE_SUPABASE_ANON_KEY.includes('your-supabase-anon-key')) && (
           <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
             <p className="text-sm text-blue-800 text-center">
               🎯 <strong>Demo Mode:</strong> Click any button to enter the dashboard
+            </p>
+            <p className="text-xs text-blue-600 text-center mt-1">
+              To enable real authentication, configure your Supabase keys in .env
+            </p>
+          </div>
+        )}
+        
+        {/* Real Mode Indicator */}
+        {import.meta.env.VITE_SUPABASE_URL && 
+         !import.meta.env.VITE_SUPABASE_URL.includes('your-project') &&
+         !import.meta.env.VITE_SUPABASE_ANON_KEY.includes('your-supabase-anon-key') && (
+          <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+            <p className="text-sm text-green-800 text-center">
+              ✅ <strong>Real Authentication:</strong> Supabase configured
             </p>
           </div>
         )}
