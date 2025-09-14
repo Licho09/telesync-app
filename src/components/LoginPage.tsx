@@ -36,7 +36,7 @@ const LoginPage: React.FC = () => {
       setIsLoading(true);
       if (isSignUp) {
         await signUpWithEmail(email, password);
-        toast.success('Account created successfully!');
+        toast.success('Account created! Please check your email and click the confirmation link to complete signup.');
       } else {
         await signInWithEmail(email, password);
         toast.success('Signed in successfully!');
