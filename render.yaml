@@ -22,10 +22,10 @@ services:
   # Backend Service
   - type: web
     name: telesync-backend
-    env: node
+    env: python
     plan: free
-    buildCommand: npm install
-    startCommand: npm run server
+    buildCommand: pip install -r requirements.txt && npm install
+    startCommand: node server.js
     healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
