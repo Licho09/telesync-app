@@ -11,19 +11,13 @@ services:
         destination: /index.html
     envVars:
       - key: VITE_API_BASE_URL
-        value: https://telesync-backend.onrender.com/api
+        value: https://telesync-backend-jkqs.onrender.com/api
       - key: VITE_WS_URL
-        value: wss://telesync-backend.onrender.com
+        value: wss://telesync-backend-jkqs.onrender.com
       - key: VITE_SUPABASE_URL
-        fromService:
-          type: web
-          name: telesync-backend
-          envVarKey: VITE_SUPABASE_URL
+        value: https://iausgqikbmhkkicmuzei.supabase.co
       - key: VITE_SUPABASE_ANON_KEY
-        fromService:
-          type: web
-          name: telesync-backend
-          envVarKey: VITE_SUPABASE_ANON_KEY
+        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlhdXNncWlrYm1oa2tpY211emVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc3OTQ2NjEsImV4cCI6MjA3MzM3MDY2MX0.EGXA8llbbTQ3QvhttQN_sIklVM0ymBQ0VZ2qYva45js
 
   # Backend Service
   - type: web
@@ -38,8 +32,7 @@ services:
         value: production
       - key: PORT
         value: 3001
-      - key: VITE_SUPABASE_URL
-        sync: false
-      - key: VITE_SUPABASE_ANON_KEY
-        sync: false
-
+      - key: SUPABASE_URL
+        value: https://iausgqikbmhkkicmuzei.supabase.co
+      - key: SUPABASE_ANON_KEY
+        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlhdXNncWlrYm1oa2tpY211emVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc3OTQ2NjEsImV4cCI6MjA3MzM3MDY2MX0.EGXA8llbbTQ3QvhttQN_sIklVM0ymBQ0VZ2qYva45js
