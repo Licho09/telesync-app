@@ -189,6 +189,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/dashboard`,
+        },
       });
       
       if (error) {
@@ -197,6 +200,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
       
       console.log('Email/password sign up successful:', data);
+      
+      // If user is immediately confirmed (no email confirmation required)
+      if (data.user && data.session) {
+        setUser({
+          id: data.user.id,
+          email: data.user.email || '',
+          name: data.user.user_metadata?.full_name,
+          avatar_url: data.user.user_metadata?.avatar_url,
+        });
+      }
     } catch (error) {
       console.error('Error signing up with email:', error);
       throw error;
