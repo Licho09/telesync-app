@@ -70,6 +70,10 @@ const Dashboard: React.FC = () => {
     apiHash: '',
     phoneNumber: ''
   });
+  
+  // Verification code state
+  const [showVerificationCodeForm, setShowVerificationCodeForm] = useState(false);
+  const [verificationCode, setVerificationCode] = useState('');
   const [showApiHash, setShowApiHash] = useState(false);
   const [credentialsStatus, setCredentialsStatus] = useState({
     hasCredentials: false,
@@ -463,6 +467,60 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const handleVerifyCode = async () => {
+    try {
+      const response = await fetch('/api/telegram/verify-and-connect', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user?.id,
+          phone: apiCredentials.phoneNumber,
+          code: verificationCode
+        }),
+      });
+
+      if (response.ok) {
+        toast.success('Telegram authentication successful!');
+        setShowVerificationCodeForm(false);
+        setVerificationCode('');
+        await loadCredentialsStatus();
+      } else {
+        throw new Error('Failed to verify code');
+      }
+    } catch (error) {
+      console.error('Error verifying code:', error);
+      toast.error('Failed to verify code. Please try again.');
+    }
+  };
+
+  const handleSendVerificationCode = async () => {
+    try {
+      const response = await fetch('/api/telegram/send-code', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user?.id,
+          phone: apiCredentials.phoneNumber
+        }),
+      });
+
+      if (response.ok) {
+        toast.success('Verification code sent! Check your phone.');
+        // Show verification code input
+        setShowVerificationCodeForm(true);
+      } else {
+        throw new Error('Failed to send verification code');
+      }
+    } catch (error) {
+      console.error('Error sending verification code:', error);
+      toast.error('Failed to send verification code');
+    }
+  };
+
   const handleSaveApiCredentials = async () => {
     try {
       // Validate credentials
@@ -487,6 +545,9 @@ const Dashboard: React.FC = () => {
         toast.success('API credentials saved successfully! Monitor will restart with new credentials.');
         // Refresh credentials status
         await loadCredentialsStatus();
+        
+        // Trigger authentication flow
+        await handleSendVerificationCode();
       } else {
         throw new Error('Failed to save credentials');
       }
@@ -1533,6 +1594,50 @@ const Dashboard: React.FC = () => {
                       >
                         Save API Credentials
                       </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Verification Code Form */}
+                {showVerificationCodeForm && (
+                  <div className="space-y-6">
+                    <div>
+                      <h4 className="text-xl font-medium text-white mb-2">Enter Verification Code</h4>
+                      <p className="text-sm text-slate-400 mb-4">
+                        Enter the 6-digit code sent to your phone number: {apiCredentials.phoneNumber}
+                      </p>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-slate-300 mb-2">
+                          Verification Code
+                        </label>
+                        <input
+                          type="text"
+                          value={verificationCode}
+                          onChange={(e) => setVerificationCode(e.target.value)}
+                          className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="123456"
+                          maxLength={6}
+                        />
+                        <p className="text-xs text-slate-500 mt-1">
+                          💡 For demo purposes, you can use: <code className="bg-slate-600 px-1 rounded">123456</code> or <code className="bg-slate-600 px-1 rounded">demo</code>
+                        </p>
+                      </div>
+                      
+                      <div className="flex space-x-3 mt-4">
+                        <button
+                          onClick={handleVerifyCode}
+                          className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg hover:from-blue-600 hover:to-cyan-600 transition-all duration-200 font-medium shadow-lg"
+                        >
+                          Verify Code
+                        </button>
+                        <button
+                          onClick={() => setShowVerificationCodeForm(false)}
+                          className="px-6 py-3 text-slate-300 bg-slate-700/50 rounded-lg hover:bg-slate-600/50 transition-all duration-200 font-medium border border-slate-600/50"
+                        >
+                          Cancel
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}
