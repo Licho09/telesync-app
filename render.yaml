@@ -24,7 +24,7 @@ services:
     name: telesync-backend
     env: node
     plan: free
-    buildCommand: npm install
+    buildCommand: npm install && pip install -r telegram_requirements.txt
     startCommand: npm run server
     healthCheckPath: /api/health
     envVars:
