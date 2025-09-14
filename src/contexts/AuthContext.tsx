@@ -209,6 +209,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           name: data.user.user_metadata?.full_name,
           avatar_url: data.user.user_metadata?.avatar_url,
         });
+      } else if (data.user) {
+        // User created but no session yet - try to sign in immediately
+        console.log('User created, attempting immediate sign in...');
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        
+        if (signInData.user && signInData.session) {
+          setUser({
+            id: signInData.user.id,
+            email: signInData.user.email || '',
+            name: signInData.user.user_metadata?.full_name,
+            avatar_url: signInData.user.user_metadata?.avatar_url,
+          });
+        }
       }
     } catch (error) {
       console.error('Error signing up with email:', error);
