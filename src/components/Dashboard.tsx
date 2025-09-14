@@ -1609,6 +1609,14 @@ const Dashboard: React.FC = () => {
                       )}
                     </div>
                     
+                    {/* Demo vs Real Credentials Note */}
+                    <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 mb-4">
+                      <p className="text-yellow-200 text-sm">
+                        <strong>Important:</strong> Each user needs their own Telegram API credentials. 
+                        The demo credentials (24409882) are only for testing and won't work for real Telegram connections.
+                      </p>
+                    </div>
+
                     <div className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium text-slate-300 mb-2">

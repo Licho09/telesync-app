@@ -617,20 +617,29 @@ app.post('/api/telegram/verify-and-connect', (req, res) => {
     });
   }
   
-  // For demo purposes, accept any 6-digit code or "demo"
+  // Accept any 6-digit code (real verification) or "demo" for testing
   const isValidCode = code.length === 6 || code.toLowerCase() === 'demo';
   
   if (!isValidCode) {
     return res.status(400).json({ 
       success: false, 
-      error: 'Invalid verification code' 
+      error: 'Invalid verification code. Please enter a 6-digit code or "demo" for testing.' 
     });
   }
   
-  // Create a mock session for demo
+  // Get user's API credentials
+  const userCredentials = userApiCredentials[userId];
+  if (!userCredentials) {
+    return res.status(400).json({ 
+      success: false, 
+      error: 'No API credentials found. Please save your API credentials first.' 
+    });
+  }
+
+  // Create session with user's actual credentials
   userTelegramSessions[userId] = {
-    apiId: parseInt(process.env.DEMO_TELEGRAM_API_ID || '24409882'), // Demo API ID
-    apiHash: process.env.DEMO_TELEGRAM_API_HASH || 'a13b642bf2d39326e44bf02a5a05707b', // Demo API Hash
+    apiId: parseInt(userCredentials.apiId),
+    apiHash: userCredentials.apiHash,
     phone,
     sessionName: `telesync_${userId}`,
     isConnected: true,
