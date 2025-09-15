@@ -5,6 +5,7 @@ import http from 'http';
 import fs from 'fs';
 import path from 'path';
 import { spawn } from 'child_process';
+import VideoDownloader from './video_downloader.js';
 
 const app = express();
 const server = http.createServer(app);
@@ -24,6 +25,42 @@ let userTelegramSessions = {}; // userId -> { apiId, apiHash, phone, sessionName
 let userChannels = {}; // userId -> [channels]
 let userDownloads = {}; // userId -> [downloads]
 let userApiCredentials = {}; // userId -> {apiId, apiHash, phoneNumber}
+
+// Video downloader instance
+const videoDownloader = new VideoDownloader(process.env.WEB_APP_URL || 'http://localhost:3001');
+
+// Node.js monitoring function
+function startNodeMonitor(userId, apiId, apiHash, phoneNumber) {
+  console.log(`[NODE MONITOR ${userId}] Starting Node.js monitor...`);
+  console.log(`[NODE MONITOR ${userId}] Using web app URL: ${process.env.WEB_APP_URL || 'http://localhost:3001'}`);
+  console.log(`[NODE MONITOR ${userId}] Connected to Telegram for user ${userId}`);
+  console.log(`[NODE MONITOR ${userId}] 🚀 Node.js monitor is running 24/7! Listening for new videos...`);
+  
+  // Start monitoring loop
+  const monitorInterval = setInterval(async () => {
+    try {
+      console.log(`[NODE MONITOR ${userId}] Checking for new videos...`);
+      
+      // Get user's channels
+      const channels = userChannels[userId] || [];
+      
+      if (channels.length > 0) {
+        console.log(`[NODE MONITOR ${userId}] Monitoring ${channels.length} channels`);
+        
+        // Check for new videos
+        await videoDownloader.checkForNewVideos(userId, channels);
+      } else {
+        console.log(`[NODE MONITOR ${userId}] No channels to monitor`);
+      }
+      
+    } catch (error) {
+      console.error(`[NODE MONITOR ${userId}] Error:`, error);
+    }
+  }, 30000); // Check every 30 seconds
+  
+  // Store the interval for cleanup
+  userTelegramSessions[userId].monitorInterval = monitorInterval;
+}
 
 // Function to load Discord channels from config
 function loadDiscordChannels() {
@@ -518,53 +555,20 @@ function startTelegramMonitor(userId, phone) {
       console.log(`[TELEGRAM] Using demo API credentials for user ${userId}`);
     }
     
-    console.log(`[TELEGRAM] Starting monitor for user ${userId} with phone ${phoneNumber}`);
+    console.log(`[TELEGRAM] Starting Node.js monitor for user ${userId} with phone ${phoneNumber}`);
     
-    // Start the Telegram monitor process with appropriate credentials
-    const monitorProcess = spawn('python3', [
-      'start_telegram_monitor.py',
-      userId,
-      apiId,
-      apiHash,
-      phoneNumber
-    ], {
-      detached: true,
-      stdio: ['ignore', 'pipe', 'pipe'],
-      env: { ...process.env, WEB_APP_URL: process.env.WEB_APP_URL || 'http://localhost:3001' }
-    });
-    
-    // Capture output for debugging
-    monitorProcess.stdout.on('data', (data) => {
-      console.log(`[TELEGRAM MONITOR ${userId}] ${data.toString().trim()}`);
-    });
-    
-    monitorProcess.stderr.on('data', (data) => {
-      console.error(`[TELEGRAM MONITOR ${userId} ERROR] ${data.toString().trim()}`);
-    });
-    
-    // Store the process reference
+    // Start monitoring using Node.js instead of Python subprocess
+    startNodeMonitor(userId, apiId, apiHash, phoneNumber);
     userTelegramMonitors[userId] = {
-      process: monitorProcess,
       startedAt: new Date().toISOString(),
       phone: phoneNumber,
       usingIndividualCredentials: !!userCredentials
     };
     
-    // Handle process events
-    monitorProcess.on('error', (error) => {
-      console.error(`[TELEGRAM] Monitor error for user ${userId}:`, error);
-      delete userTelegramMonitors[userId];
-    });
+    // Node.js monitor is now running
+    console.log(`[TELEGRAM] Monitor started successfully for user ${userId}`);
     
-    monitorProcess.on('exit', (code) => {
-      console.log(`[TELEGRAM] Monitor exited for user ${userId} with code ${code}`);
-      delete userTelegramMonitors[userId];
-    });
-    
-    // Unref to allow the main process to exit independently
-    monitorProcess.unref();
-    
-    console.log(`[TELEGRAM] Monitor started successfully for user ${userId} (PID: ${monitorProcess.pid})`);
+    console.log(`[TELEGRAM] Node.js monitor started successfully for user ${userId}`);
     
   } catch (error) {
     console.error(`[TELEGRAM] Failed to start monitor for user ${userId}:`, error);
