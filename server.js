@@ -1149,6 +1149,39 @@ app.get('/api/health', (req, res) => {
   res.json({ success: true, message: 'Server is running' });
 });
 
+// Test Python packages endpoint
+app.get('/api/test-python', (req, res) => {
+  console.log('Testing Python packages...');
+  
+  const testProcess = spawn('python3', ['test_python.py'], {
+    stdio: ['ignore', 'pipe', 'pipe'],
+    env: { ...process.env }
+  });
+
+  let output = '';
+  let errorOutput = '';
+
+  testProcess.stdout.on('data', (data) => {
+    output += data.toString();
+    console.log('Python test output:', data.toString());
+  });
+
+  testProcess.stderr.on('data', (data) => {
+    errorOutput += data.toString();
+    console.log('Python test error:', data.toString());
+  });
+
+  testProcess.on('close', (code) => {
+    console.log(`Python test process exited with code ${code}`);
+    res.json({
+      exitCode: code,
+      output: output,
+      error: errorOutput,
+      success: code === 0
+    });
+  });
+});
+
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
