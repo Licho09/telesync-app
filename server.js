@@ -839,6 +839,7 @@ app.post('/api/telegram/channels', (req, res) => {
     lastChecked: new Date().toISOString(),
     totalDownloads: 0,
     type: 'telegram',
+    downloadPath: settings.downloadPath || './downloads',
     userId: userId
   };
   
@@ -856,6 +857,13 @@ app.post('/api/telegram/channels', (req, res) => {
   }
   
   userChannels[userId].push(newChannel);
+  
+  // Update all existing channels to have the current download path
+  userChannels[userId].forEach(channel => {
+    if (!channel.downloadPath) {
+      channel.downloadPath = settings.downloadPath || './downloads';
+    }
+  });
   
   res.json({ 
     success: true, 
