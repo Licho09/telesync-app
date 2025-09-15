@@ -521,12 +521,14 @@ function startTelegramMonitor(userId, phone) {
     console.log(`[TELEGRAM] Starting monitor for user ${userId} with phone ${phoneNumber}`);
     
     // Start the Telegram monitor process with appropriate credentials
-    const monitorProcess = spawn('python', [
-      'start_telegram_monitor.py',
+    // Using mock monitor temporarily to avoid Python package issues
+    const monitorProcess = spawn('python3', [
+      'mock_telegram_monitor.py',
       userId,
       apiId,
       apiHash,
-      phoneNumber
+      phoneNumber,
+      process.env.WEB_APP_URL || 'http://localhost:3001'
     ], {
       detached: true,
       stdio: ['ignore', 'pipe', 'pipe'],
