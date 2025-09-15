@@ -24,7 +24,10 @@ services:
     name: telesync-backend
     env: node
     plan: free
-    buildCommand: npm install && pip install --upgrade pip && pip install -r requirements.txt
+    buildCommand: |
+      npm install
+      curl -fsSL https://bootstrap.pypa.io/get-pip.py | python3
+      python3 -m pip install -r requirements.txt
     startCommand: node server.js
     healthCheckPath: /api/health
     envVars:
