@@ -19,9 +19,9 @@ export class VideoDownloader {
       console.log(`[VIDEO DOWNLOADER] Starting download: ${videoUrl}`);
       
       // Create download directory if it doesn't exist
-      const dir = path.dirname(downloadPath);
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
+      if (!fs.existsSync(downloadPath)) {
+        fs.mkdirSync(downloadPath, { recursive: true });
+        console.log(`[VIDEO DOWNLOADER] Created directory: ${downloadPath}`);
       }
 
       const fullPath = path.join(downloadPath, filename);
@@ -74,6 +74,11 @@ export class VideoDownloader {
     
     for (const channel of channels) {
       console.log(`[VIDEO DOWNLOADER] Checking channel: ${channel.name}`);
+      console.log(`[VIDEO DOWNLOADER] Channel details:`, {
+        name: channel.name,
+        downloadPath: channel.downloadPath,
+        url: channel.url
+      });
       
       // Simulate finding a new video (for testing)
       if (Math.random() > 0.8) { // 20% chance of finding a video
@@ -83,7 +88,9 @@ export class VideoDownloader {
         console.log(`[VIDEO DOWNLOADER] Found new video: ${filename}`);
         
         // Download the video
-        const result = await this.downloadVideo(videoUrl, channel.downloadPath || './downloads', filename);
+        const downloadPath = channel.downloadPath || './downloads';
+        console.log(`[VIDEO DOWNLOADER] Using download path: ${downloadPath}`);
+        const result = await this.downloadVideo(videoUrl, downloadPath, filename);
         
         if (result.success) {
           console.log(`[VIDEO DOWNLOADER] Successfully downloaded: ${result.filename}`);
