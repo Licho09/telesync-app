@@ -25,6 +25,7 @@ export class VideoDownloader {
       }
 
       const fullPath = path.join(downloadPath, filename);
+      const placeholderPath = fullPath + '.txt';
       
       // For now, just simulate a download
       // In a real implementation, you would:
@@ -33,6 +34,8 @@ export class VideoDownloader {
       // 3. Save it to the specified path
       
       console.log(`[VIDEO DOWNLOADER] Simulating download to: ${fullPath}`);
+      console.log(`[VIDEO DOWNLOADER] Placeholder file path: ${placeholderPath}`);
+      console.log(`[VIDEO DOWNLOADER] Download path exists: ${fs.existsSync(downloadPath)}`);
       
       // Create a placeholder file to show the download worked
       const placeholder = `# Video Download Placeholder
@@ -41,7 +44,7 @@ export class VideoDownloader {
 # This is a placeholder - real implementation would download the actual video file
 `;
       
-      fs.writeFileSync(fullPath + '.txt', placeholder);
+      fs.writeFileSync(placeholderPath, placeholder);
       
       console.log(`[VIDEO DOWNLOADER] Download completed: ${fullPath}`);
       
@@ -90,6 +93,8 @@ export class VideoDownloader {
         // Download the video
         const downloadPath = channel.downloadPath || './downloads';
         console.log(`[VIDEO DOWNLOADER] Using download path: ${downloadPath}`);
+        console.log(`[VIDEO DOWNLOADER] Channel downloadPath: ${channel.downloadPath}`);
+        console.log(`[VIDEO DOWNLOADER] Default downloadPath: ./downloads`);
         const result = await this.downloadVideo(videoUrl, downloadPath, filename);
         
         if (result.success) {
