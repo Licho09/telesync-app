@@ -70,7 +70,8 @@ class CloudStorageService:
     def setup_supabase(self):
         """Setup Supabase storage configuration"""
         self.supabase_url = os.getenv('SUPABASE_URL')
-        self.supabase_key = os.getenv('SUPABASE_ANON_KEY')
+        # Try service role key first, fallback to anon key
+        self.supabase_key = os.getenv('SUPABASE_SERVICE_ROLE_KEY') or os.getenv('SUPABASE_ANON_KEY')
         self.bucket_name = os.getenv('SUPABASE_BUCKET', 'telesync-files')
         
         if not self.supabase_url or not self.supabase_key:
