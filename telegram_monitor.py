@@ -18,6 +18,9 @@ from typing import List, Dict, Optional
 from telethon import TelegramClient, events
 # from telethon.tl.types import MessageMediaVideo, MessageMediaDocument
 
+# Import cloud storage service
+from cloud_storage_service import cloud_storage, FileMetadata
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -213,23 +216,74 @@ class TelegramMonitor:
                     
                     logger.info(f"Successfully downloaded: {filename} ({self.format_size(file_size)})")
                     
-                    # Notify the web app
-                    await self.notify_web_app({
-                        'type': 'download_completed',
-                        'data': {
-                            'user_id': self.user_id,
-                            'channel': channel_name,
-                            'channel_username': channel_username,
-                            'title': filename,
-                            'filename': filename,
-                            'size': file_size,
-                            'size_formatted': self.format_size(file_size),
-                            'file_path': str(file_path),
-                            'completed_at': datetime.now().isoformat(),
-                            'source': 'telegram_url',
-                            'url': url
-                        }
-                    })
+                    # Create file metadata for cloud storage
+                    metadata = FileMetadata(
+                        user_id=self.user_id,
+                        channel_name=channel_name,
+                        channel_username=channel_username,
+                        filename=filename,
+                        file_size=file_size,
+                        file_type="video/mp4",  # yt-dlp typically downloads as mp4
+                        cloud_path="",  # Will be set by upload function
+                        local_path=str(file_path),
+                        source="telegram_url",
+                        message_url=url
+                    )
+                    
+                    # Upload to cloud storage
+                    logger.info(f"Uploading to cloud storage: {filename}")
+                    upload_success = await cloud_storage.upload_file(file_path, metadata)
+                    
+                    if upload_success:
+                        logger.info(f"Successfully uploaded to cloud: {filename}")
+                        
+                        # Clean up local file after successful upload
+                        try:
+                            file_path.unlink()
+                            logger.debug(f"Cleaned up local file: {file_path}")
+                        except Exception as e:
+                            logger.warning(f"Failed to clean up local file: {e}")
+                        
+                        # Notify the web app
+                        await self.notify_web_app({
+                            'type': 'download_completed',
+                            'data': {
+                                'user_id': self.user_id,
+                                'channel': channel_name,
+                                'channel_username': channel_username,
+                                'title': filename,
+                                'filename': filename,
+                                'size': file_size,
+                                'size_formatted': self.format_size(file_size),
+                                'completed_at': datetime.now().isoformat(),
+                                'source': 'telegram_url',
+                                'url': url,
+                                'cloud_path': metadata.cloud_path,
+                                'stored_in_cloud': True
+                            }
+                        })
+                    else:
+                        logger.error(f"Failed to upload to cloud storage: {filename}")
+                        
+                        # Notify web app with local file info
+                        await self.notify_web_app({
+                            'type': 'download_completed',
+                            'data': {
+                                'user_id': self.user_id,
+                                'channel': channel_name,
+                                'channel_username': channel_username,
+                                'title': filename,
+                                'filename': filename,
+                                'size': file_size,
+                                'size_formatted': self.format_size(file_size),
+                                'file_path': str(file_path),
+                                'completed_at': datetime.now().isoformat(),
+                                'source': 'telegram_url',
+                                'url': url,
+                                'stored_in_cloud': False,
+                                'cloud_upload_failed': True
+                            }
+                        })
                     
                     return True
                 else:
@@ -245,16 +299,17 @@ class TelegramMonitor:
             return False
     
     async def download_video(self, message, channel_name: str, channel_username: str):
-        """Download a video from a message."""
+        """Download a video from a message and upload to cloud storage."""
         try:
-            # Create channel-specific folder
-            channel_folder = self.download_path / self.sanitize_filename(channel_name)
-            channel_folder.mkdir(exist_ok=True)
+            # Create temporary download folder
+            temp_folder = self.download_path / "temp"
+            temp_folder.mkdir(exist_ok=True)
             
             # Generate filename
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             if message.video:
                 filename = f"{timestamp}_{message.id}.mp4"
+                file_type = "video/mp4"
             else:
                 # For documents, try to preserve original filename
                 original_filename = getattr(message.document, 'attributes', [])
@@ -264,42 +319,100 @@ class TelegramMonitor:
                         break
                 else:
                     filename = f"{timestamp}_{message.id}.mp4"
+                
+                # Get file type from document
+                file_type = getattr(message.document, 'mime_type', 'video/mp4')
             
-            file_path = channel_folder / filename
+            temp_file_path = temp_folder / filename
             
-            # Download the file
+            # Download the file to temporary location
             logger.info(f"Downloading video from {channel_name}: {filename}")
-            await message.download_media(file=str(file_path))
+            await message.download_media(file=str(temp_file_path))
             
-            # Update statistics
-            file_size = file_path.stat().st_size
-            self.stats['total_downloads'] += 1
-            self.stats['successful_downloads'] += 1
-            self.stats['total_size'] += file_size
-            self.stats['last_download'] = datetime.now().isoformat()
+            # Get file size
+            file_size = temp_file_path.stat().st_size
+            logger.info(f"Downloaded to temp: {temp_file_path} ({self.format_size(file_size)})")
             
-            logger.info(f"Successfully downloaded: {file_path} ({self.format_size(file_size)})")
+            # Create file metadata
+            metadata = FileMetadata(
+                user_id=self.user_id,
+                channel_name=channel_name,
+                channel_username=channel_username,
+                filename=filename,
+                file_size=file_size,
+                file_type=file_type,
+                cloud_path="",  # Will be set by upload function
+                local_path=str(temp_file_path),
+                source="telegram",
+                message_id=str(message.id),
+                message_url=f"https://t.me/{channel_username}/{message.id}" if channel_username else f"telegram://{channel_name}/{message.id}"
+            )
             
-            # Notify the web app (using same format as Discord downloads)
-            await self.notify_web_app({
-                'type': 'download_completed',
-                'data': {
-                    'user_id': self.user_id,
-                    'id': f"telegram_{message.id}_{int(datetime.now().timestamp())}",
-                    'url': f"https://t.me/{channel_username}/{message.id}" if channel_username else f"telegram://{channel_name}/{message.id}",
-                    'title': filename,
-                    'filename': filename,
-                    'size': file_size,
-                    'size_formatted': self.format_size(file_size),
-                    'channel': f"#{channel_name}",
-                    'source': 'telegram',
-                    'status': 'completed',
-                    'progress': 100,
-                    'createdAt': datetime.now().isoformat(),
-                    'completedAt': datetime.now().isoformat(),
-                    'timestamp': datetime.now().isoformat()
-                }
-            })
+            # Upload to cloud storage
+            logger.info(f"Uploading to cloud storage: {filename}")
+            upload_success = await cloud_storage.upload_file(temp_file_path, metadata)
+            
+            if upload_success:
+                # Update statistics
+                self.stats['total_downloads'] += 1
+                self.stats['successful_downloads'] += 1
+                self.stats['total_size'] += file_size
+                self.stats['last_download'] = datetime.now().isoformat()
+                
+                logger.info(f"Successfully uploaded to cloud: {filename}")
+                
+                # Clean up temporary file
+                try:
+                    temp_file_path.unlink()
+                    logger.debug(f"Cleaned up temp file: {temp_file_path}")
+                except Exception as e:
+                    logger.warning(f"Failed to clean up temp file: {e}")
+                
+                # Notify the web app
+                await self.notify_web_app({
+                    'type': 'download_completed',
+                    'data': {
+                        'user_id': self.user_id,
+                        'id': f"telegram_{message.id}_{int(datetime.now().timestamp())}",
+                        'url': metadata.message_url,
+                        'title': filename,
+                        'filename': filename,
+                        'size': file_size,
+                        'size_formatted': self.format_size(file_size),
+                        'channel': f"#{channel_name}",
+                        'source': 'telegram',
+                        'status': 'completed',
+                        'progress': 100,
+                        'createdAt': datetime.now().isoformat(),
+                        'completedAt': datetime.now().isoformat(),
+                        'timestamp': datetime.now().isoformat(),
+                        'cloud_path': metadata.cloud_path,
+                        'stored_in_cloud': True
+                    }
+                })
+            else:
+                # Upload failed, keep local file as backup
+                logger.error(f"Failed to upload to cloud storage: {filename}")
+                self.stats['failed_downloads'] += 1
+                
+                # Move to regular download folder as backup
+                backup_folder = self.download_path / self.sanitize_filename(channel_name)
+                backup_folder.mkdir(exist_ok=True)
+                backup_path = backup_folder / filename
+                temp_file_path.rename(backup_path)
+                
+                # Notify web app of failure
+                await self.notify_web_app({
+                    'type': 'download_failed',
+                    'data': {
+                        'user_id': self.user_id,
+                        'channel': channel_name,
+                        'channel_username': channel_username,
+                        'error': 'Failed to upload to cloud storage',
+                        'failed_at': datetime.now().isoformat(),
+                        'local_backup': str(backup_path)
+                    }
+                })
             
         except Exception as e:
             logger.error(f"Failed to download video from {channel_name}: {e}")

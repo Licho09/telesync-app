@@ -995,8 +995,8 @@ app.post('/api/telegram/download-notification', (req, res) => {
     }
     
     const download = {
-      id: `telegram_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      url: data.channel_username ? `https://t.me/${data.channel_username}` : data.channel,
+      id: data.id || `telegram_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      url: data.url || (data.channel_username ? `https://t.me/${data.channel_username}` : data.channel),
       title: data.title,
       filename: data.filename,
       size: data.size,
@@ -1005,9 +1005,11 @@ app.post('/api/telegram/download-notification', (req, res) => {
       source: 'telegram',
       status: 'completed',
       progress: 100,
-      createdAt: new Date().toISOString(),
-      completedAt: data.completed_at,
-      userId: userId
+      createdAt: data.createdAt || new Date().toISOString(),
+      completedAt: data.completedAt || data.completed_at,
+      userId: userId,
+      cloud_path: data.cloud_path,
+      stored_in_cloud: data.stored_in_cloud || false
     };
     
     userDownloads[userId].unshift(download); // Add to beginning
@@ -1027,7 +1029,7 @@ app.post('/api/telegram/download-notification', (req, res) => {
       userId: userId 
     });
     
-    console.log(`Download completed for user ${userId}: ${data.title}`);
+    console.log(`Download completed for user ${userId}: ${data.title} (Cloud: ${data.stored_in_cloud ? 'Yes' : 'No'})`);
     
   } else if (type === 'download_failed') {
     // Handle download failure
@@ -1154,6 +1156,96 @@ app.get('/api/telegram/credentials/:userId', (req, res) => {
       error: 'Failed to get API credentials' 
     });
   }
+});
+
+// Cloud Storage endpoints
+app.get('/api/cloud/files/:userId', async (req, res) => {
+  const { userId } = req.params;
+  
+  try {
+    // Import cloud storage service
+    const { spawn } = require('child_process');
+    
+    // Get files from cloud storage
+    const pythonProcess = spawn('python3', ['-c', `
+import asyncio
+import sys
+import os
+from cloud_storage_service import cloud_storage
+
+async def get_files():
+    try:
+        files = await cloud_storage.get_user_files('${userId}')
+        print('SUCCESS:' + str(files))
+    except Exception as e:
+        print('ERROR:' + str(e))
+
+asyncio.run(get_files())
+    `], {
+      stdio: ['ignore', 'pipe', 'pipe'],
+      env: { ...process.env }
+    });
+
+    let output = '';
+    let errorOutput = '';
+
+    pythonProcess.stdout.on('data', (data) => {
+      output += data.toString();
+    });
+
+    pythonProcess.stderr.on('data', (data) => {
+      errorOutput += data.toString();
+    });
+
+    pythonProcess.on('close', (code) => {
+      if (code === 0 && output.includes('SUCCESS:')) {
+        try {
+          const filesData = output.split('SUCCESS:')[1].trim();
+          const files = JSON.parse(filesData);
+          res.json({ success: true, data: files });
+        } catch (parseError) {
+          res.status(500).json({ success: false, error: 'Failed to parse cloud files data' });
+        }
+      } else {
+        res.status(500).json({ success: false, error: errorOutput || 'Failed to get cloud files' });
+      }
+    });
+
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Sync status endpoint
+app.get('/api/sync/status/:userId', (req, res) => {
+  const { userId } = req.params;
+  
+  // Mock sync status - in real implementation, this would check actual sync status
+  res.json({
+    success: true,
+    data: {
+      userId: userId,
+      last_sync: new Date().toISOString(),
+      total_synced: 0,
+      sync_enabled: true,
+      cloud_files_count: 0
+    }
+  });
+});
+
+// Handle sync notifications
+app.post('/api/sync/notification', (req, res) => {
+  const { type, data } = req.body;
+  
+  console.log(`Sync notification: ${type}`, data);
+  
+  // Broadcast sync updates to connected clients
+  broadcast({
+    type: `sync_${type}`,
+    data: data
+  });
+  
+  res.json({ success: true });
 });
 
 // Health check

@@ -142,3 +142,9 @@ Most cloud providers offer:
 - **Restart** - Manual restart if needed
 
 Your Telegram monitor will now run 24/7 in the cloud! 🎉
+
+
+
+
+
+
