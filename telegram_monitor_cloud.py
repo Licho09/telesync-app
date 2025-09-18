@@ -73,6 +73,11 @@ class CloudTelegramMonitor:
         
         return configs
     
+    async def add_user_monitor(self, user_id: str, config: Dict):
+        """Add a user to monitor"""
+        self.user_configs[user_id] = config
+        logger.info(f"Added user {user_id} to monitor")
+    
     async def start_user_monitor(self, user_id: str, config: Dict):
         """Start monitoring for a specific user"""
         try:
@@ -281,15 +286,37 @@ async def main():
         logger.error("Note: Telegram credentials are entered by users through the web interface")
         sys.exit(1)
     
-    # Create and start cloud monitor
-    cloud_monitor = CloudTelegramMonitor()
-    
-    try:
-        await cloud_monitor.start()
-    except KeyboardInterrupt:
-        logger.info("Received interrupt signal")
-    except Exception as e:
-        logger.error(f"Unexpected error: {e}")
+    # Get command line arguments
+    if len(sys.argv) >= 5:
+        user_id = sys.argv[1]
+        api_id = sys.argv[2]
+        api_hash = sys.argv[3]
+        phone = sys.argv[4]
+        
+        logger.info(f"Starting monitor for user: {user_id}")
+        logger.info(f"API ID: {api_id}")
+        logger.info(f"Phone: {phone}")
+        
+        # Create and start cloud monitor with user data
+        cloud_monitor = CloudTelegramMonitor()
+        
+        # Add user to monitor
+        await cloud_monitor.add_user_monitor(user_id, {
+            'api_id': api_id,
+            'api_hash': api_hash,
+            'phone': phone,
+            'channels': []  # Will be populated from API
+        })
+        
+        try:
+            await cloud_monitor.start()
+        except KeyboardInterrupt:
+            logger.info("Received interrupt signal")
+        except Exception as e:
+            logger.error(f"Unexpected error: {e}")
+            sys.exit(1)
+    else:
+        logger.error("Usage: python telegram_monitor_cloud.py <user_id> <api_id> <api_hash> <phone>")
         sys.exit(1)
 
 if __name__ == "__main__":
