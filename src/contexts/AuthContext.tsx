@@ -15,6 +15,13 @@ const isDemoMode = !import.meta.env.VITE_SUPABASE_URL ||
 const supabase = isDemoMode ? null : createClient(supabaseUrl, supabaseKey);
 
 // Debug logging
+console.log('Demo mode check:', {
+  isDemoMode,
+  supabaseUrl,
+  hasSupabaseKey: !!supabaseKey,
+  supabaseClient: supabase ? 'created' : 'null'
+});
+
 if (!isDemoMode) {
   console.log('Supabase initialized with URL:', supabaseUrl);
   console.log('Supabase key configured:', supabaseKey ? 'Yes' : 'No');
@@ -105,8 +112,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const signInWithGoogle = async () => {
-    if (isDemoMode) {
+    console.log('signInWithGoogle called, isDemoMode:', isDemoMode);
+    
+    if (isDemoMode || !supabase) {
       // Demo mode - simulate successful login
+      console.log('Using demo mode login');
       setUser({
         id: 'demo-user-123',
         email: 'demo@telesync.com',
