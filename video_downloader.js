@@ -84,7 +84,7 @@ export class VideoDownloader {
       });
       
       // Simulate finding a new video (for testing)
-      if (Math.random() > 0.8) { // 20% chance of finding a video
+      if (Math.random() > 0.0) { // 100% chance of finding a video for testing
         const videoUrl = `https://example.com/video_${Date.now()}.mp4`;
         const filename = `video_${Date.now()}.mp4`;
         

@@ -283,6 +283,34 @@ app.post('/api/test-download', (req, res) => {
   res.json({ success: true, message: 'Test download started' });
 });
 
+// Force video detection for testing
+app.post('/api/force-video-detection', (req, res) => {
+  const { userId } = req.body;
+  
+  if (!userId) {
+    return res.status(400).json({ 
+      success: false, 
+      error: 'Missing userId' 
+    });
+  }
+  
+  // Get user's channels
+  const userChannelsList = userChannels[userId] || [];
+  
+  if (userChannelsList.length === 0) {
+    return res.status(400).json({ 
+      success: false, 
+      error: 'No channels found for user' 
+    });
+  }
+  
+  // Force check for videos
+  console.log(`[API] Forcing video detection for user ${userId}`);
+  videoDownloader.checkForNewVideos(userId, userChannelsList);
+  
+  res.json({ success: true, message: 'Video detection triggered' });
+});
+
 // Add sample downloads endpoint
 app.post('/api/add-sample-downloads', (req, res) => {
   const sampleDownloads = [
