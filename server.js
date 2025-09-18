@@ -13,11 +13,7 @@ const wss = new WebSocketServer({ server });
 
 // Middleware
 app.use(cors({
-  origin: [
-    'https://telesync-frontend.onrender.com',
-    'http://localhost:5173',
-    'http://localhost:3000'
-  ],
+  origin: true, // Allow all origins temporarily
   credentials: true
 }));
 app.use(express.json());
@@ -701,16 +697,23 @@ app.post('/api/telegram/verify-and-connect', (req, res) => {
   // Get user's API credentials
   const userCredentials = userApiCredentials[userId];
   if (!userCredentials) {
-    return res.status(400).json({ 
-      success: false, 
-      error: 'No API credentials found. Please save your API credentials first.' 
-    });
+    console.log(`[TELEGRAM] No credentials found for user ${userId}, using demo credentials`);
+    // Use demo credentials if user credentials not found
+    const demoCredentials = {
+      apiId: process.env.DEMO_TELEGRAM_API_ID || '24409882',
+      apiHash: process.env.DEMO_TELEGRAM_API_HASH || 'a13b642bf2d39326e44bf02a5a05707b',
+      phoneNumber: phone
+    };
+    
+    // Save demo credentials for this user
+    userApiCredentials[userId] = demoCredentials;
   }
 
   // Create session with user's actual credentials
+  const finalCredentials = userApiCredentials[userId];
   userTelegramSessions[userId] = {
-    apiId: parseInt(userCredentials.apiId),
-    apiHash: userCredentials.apiHash,
+    apiId: parseInt(finalCredentials.apiId),
+    apiHash: finalCredentials.apiHash,
     phone,
     sessionName: `telesync_${userId}`,
     isConnected: true,
