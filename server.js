@@ -12,7 +12,14 @@ const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: [
+    'https://telesync-frontend.onrender.com',
+    'http://localhost:5173',
+    'http://localhost:3000'
+  ],
+  credentials: true
+}));
 app.use(express.json());
 
 // Mock data storage (in production, use a real database)

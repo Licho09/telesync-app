@@ -26,7 +26,7 @@ services:
     plan: free
     buildCommand: |
       npm install
-      python3 -m pip install --user -r requirements.txt
+      python3 -m pip install -r requirements.txt
     startCommand: node server.js
     healthCheckPath: /api/health
     envVars:
@@ -40,3 +40,7 @@ services:
         value: https://iausgqikbmhkkicmuzei.supabase.co
       - key: SUPABASE_ANON_KEY
         value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlhdXNncWlrYm1oa2tpY211emVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc3OTQ2NjEsImV4cCI6MjA3MzM3MDY2MX0.EGXA8llbbTQ3QvhttQN_sIklVM0ymBQ0VZ2qYva45js
+      - key: SUPABASE_BUCKET
+        value: telesync-files
+      - key: CLOUD_STORAGE_TYPE
+        value: supabase
