@@ -142,19 +142,29 @@ class CloudStorageService:
             # Upload to Supabase
             headers = {
                 'Authorization': f'Bearer {self.supabase_key}',
-                'Content-Type': 'application/octet-stream'
+                'Content-Type': 'application/octet-stream',
+                'x-upsert': 'true'  # Allow overwriting files
             }
             
             url = f"{self.supabase_url}/storage/v1/object/{self.bucket_name}/{cloud_path}"
             
+            logger.info(f"Uploading to Supabase: {url}")
+            logger.info(f"File size: {len(file_data)} bytes")
+            logger.info(f"Cloud path: {cloud_path}")
+            
             async with aiohttp.ClientSession() as session:
                 async with session.post(url, data=file_data, headers=headers) as response:
+                    response_text = await response.text()
+                    logger.info(f"Supabase response status: {response.status}")
+                    logger.info(f"Supabase response: {response_text}")
+                    
                     if response.status == 200:
                         logger.info(f"Successfully uploaded to Supabase: {cloud_path}")
                         await self.save_metadata(metadata)
                         return True
                     else:
                         logger.error(f"Supabase upload failed: {response.status}")
+                        logger.error(f"Response: {response_text}")
                         return False
                         
         except Exception as e:
