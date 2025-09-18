@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import LandingPage from './components/LandingPage';
 import LoginPage from './components/LoginPage';
 import Dashboard from './components/Dashboard';
+import DownloadsPage from './components/DownloadsPage';
 import './index.css';
 
 // Protected Route component
@@ -64,6 +65,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Dashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/downloads" 
+              element={
+                <ProtectedRoute>
+                  <DownloadsPage />
                 </ProtectedRoute>
               } 
             />
