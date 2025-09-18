@@ -216,7 +216,13 @@ export class WebSocketService {
   connect(onMessage: (data: any) => void, onError?: (error: Event) => void) {
     const wsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:3001';
     
-    this.ws = new WebSocket(wsUrl);
+    try {
+      this.ws = new WebSocket(wsUrl);
+    } catch (error) {
+      console.error('Failed to create WebSocket connection:', error);
+      if (onError) onError(error as Event);
+      return;
+    }
 
     this.ws.onopen = () => {
       console.log('WebSocket connected');

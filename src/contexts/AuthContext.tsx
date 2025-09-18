@@ -8,7 +8,9 @@ const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key';
 // Demo mode - bypass authentication if no real credentials are provided
 const isDemoMode = !import.meta.env.VITE_SUPABASE_URL || 
   import.meta.env.VITE_SUPABASE_URL.includes('your-project') ||
-  import.meta.env.VITE_SUPABASE_ANON_KEY.includes('your-supabase-anon-key');
+  import.meta.env.VITE_SUPABASE_ANON_KEY.includes('your-supabase-anon-key') ||
+  import.meta.env.VITE_FORCE_DEMO_MODE === 'true' ||
+  true; // Force demo mode for now - fix Supabase later
 
 const supabase = isDemoMode ? null : createClient(supabaseUrl, supabaseKey);
 

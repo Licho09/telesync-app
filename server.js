@@ -584,6 +584,12 @@ function startTelegramMonitor(userId, phone) {
     
     pythonProcess.on('close', (code) => {
       console.log(`[PYTHON MONITOR ${userId}] Process exited with code ${code}`);
+      if (code !== 0) {
+        console.error(`[PYTHON MONITOR ${userId}] Process failed with exit code ${code}`);
+        console.log(`[TELEGRAM] Falling back to Node.js monitor for user ${userId}`);
+        // Fallback to Node.js monitor if Python fails
+        startNodeMonitor(userId, apiId, apiHash, phoneNumber);
+      }
       delete userTelegramMonitors[userId];
     });
     
