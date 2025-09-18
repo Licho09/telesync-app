@@ -555,7 +555,6 @@ function startTelegramMonitor(userId, phone) {
     console.log(`[TELEGRAM] Starting Python cloud monitor for user ${userId}`);
     
     // Start Python cloud monitor instead of Node.js monitor
-    const { spawn } = require('child_process');
     
     const pythonProcess = spawn('python3', [
       'telegram_monitor_cloud.py',
