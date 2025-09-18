@@ -409,6 +409,29 @@ app.get('/api/downloads/:id', (req, res) => {
   res.json({ success: true, data: download });
 });
 
+// Add new download endpoint
+app.post('/api/downloads', (req, res) => {
+  const downloadData = req.body;
+  
+  // Validate required fields
+  if (!downloadData.id || !downloadData.filename) {
+    return res.status(400).json({ 
+      success: false, 
+      error: 'Missing required fields: id and filename' 
+    });
+  }
+  
+  // Add to downloads array
+  downloads.unshift(downloadData); // Add to beginning of array
+  
+  // Broadcast update to all connected clients
+  broadcast({ type: 'downloads_update', data: downloads });
+  
+  console.log(`[API] Added new download: ${downloadData.filename} for user ${downloadData.userId || 'unknown'}`);
+  
+  res.json({ success: true, data: downloadData });
+});
+
 app.post('/api/downloads/:id/retry', (req, res) => {
   const { id } = req.params;
   const downloadIndex = downloads.findIndex(d => d.id === id);

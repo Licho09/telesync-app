@@ -117,9 +117,38 @@ export class VideoDownloader {
     try {
       console.log(`[VIDEO DOWNLOADER] Notifying web app about download:`, downloadInfo);
       
-      // In a real implementation, you would send this to the web app
-      // For now, just log it
-      console.log(`[VIDEO DOWNLOADER] Download notification for user ${userId}:`, downloadInfo);
+      // Send download notification to the server
+      const downloadData = {
+        id: `download_${Date.now()}`,
+        url: `https://t.me/+avKdNDQy7wgwMDJh`, // Channel URL
+        title: downloadInfo.filename,
+        filename: downloadInfo.filename,
+        size: downloadInfo.size,
+        size_formatted: `${(downloadInfo.size / 1024).toFixed(1)} KB`,
+        status: 'completed',
+        progress: 100,
+        channel: downloadInfo.channel,
+        downloadedAt: downloadInfo.downloadedAt,
+        path: downloadInfo.path,
+        userId: userId,
+        createdAt: new Date().toISOString(),
+        timestamp: new Date().toISOString()
+      };
+      
+      // Make HTTP request to add download to server
+      const response = await fetch(`${this.webAppUrl}/api/downloads`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(downloadData)
+      });
+      
+      if (response.ok) {
+        console.log(`[VIDEO DOWNLOADER] Successfully notified server about download: ${downloadInfo.filename}`);
+      } else {
+        console.error(`[VIDEO DOWNLOADER] Failed to notify server: ${response.status}`);
+      }
       
     } catch (error) {
       console.error(`[VIDEO DOWNLOADER] Failed to notify web app:`, error);
