@@ -528,7 +528,6 @@ app.get('/api/channels/refresh', (req, res) => {
 
 // Function to start Telegram monitor for a user
 function startTelegramMonitor(userId, phone) {
-  
   try {
     // Check if monitor is already running for this user
     if (userTelegramMonitors[userId]) {
@@ -542,44 +541,67 @@ function startTelegramMonitor(userId, phone) {
     let apiId, apiHash, phoneNumber;
     
     if (userCredentials) {
-      // Use user's individual API credentials
       apiId = userCredentials.apiId.toString();
       apiHash = userCredentials.apiHash;
       phoneNumber = userCredentials.phoneNumber;
       console.log(`[TELEGRAM] Using individual API credentials for user ${userId} (API ID: ${apiId})`);
     } else {
-      // Fall back to demo credentials
       apiId = process.env.DEMO_TELEGRAM_API_ID || '24409882';
       apiHash = process.env.DEMO_TELEGRAM_API_HASH || 'a13b642bf2d39326e44bf02a5a05707b';
       phoneNumber = phone;
       console.log(`[TELEGRAM] Using demo API credentials for user ${userId}`);
     }
     
-    console.log(`[TELEGRAM] Starting Node.js monitor for user ${userId} with phone ${phoneNumber}`);
+    console.log(`[TELEGRAM] Starting Python cloud monitor for user ${userId}`);
     
-    // Start monitoring using Node.js instead of Python subprocess
-    startNodeMonitor(userId, apiId, apiHash, phoneNumber);
+    // Start Python cloud monitor instead of Node.js monitor
+    const { spawn } = require('child_process');
+    
+    const pythonProcess = spawn('python3', [
+      'telegram_monitor_cloud.py',
+      userId,
+      apiId,
+      apiHash,
+      phoneNumber
+    ], {
+      stdio: ['ignore', 'pipe', 'pipe'],
+      env: { ...process.env }
+    });
+    
+    pythonProcess.stdout.on('data', (data) => {
+      console.log(`[PYTHON MONITOR ${userId}] ${data.toString()}`);
+    });
+    
+    pythonProcess.stderr.on('data', (data) => {
+      console.error(`[PYTHON MONITOR ${userId}] ${data.toString()}`);
+    });
+    
+    pythonProcess.on('close', (code) => {
+      console.log(`[PYTHON MONITOR ${userId}] Process exited with code ${code}`);
+      delete userTelegramMonitors[userId];
+    });
+    
     userTelegramMonitors[userId] = {
+      process: pythonProcess,
       startedAt: new Date().toISOString(),
       phone: phoneNumber,
       usingIndividualCredentials: !!userCredentials
     };
     
-    // Node.js monitor is now running
-    console.log(`[TELEGRAM] Monitor started successfully for user ${userId}`);
-    
-    console.log(`[TELEGRAM] Node.js monitor started successfully for user ${userId}`);
+    console.log(`[TELEGRAM] Python cloud monitor started successfully for user ${userId}`);
     
   } catch (error) {
-    console.error(`[TELEGRAM] Failed to start monitor for user ${userId}:`, error);
+    console.error(`[TELEGRAM] Failed to start Python monitor for user ${userId}:`, error);
   }
 }
 
 // Function to stop Telegram monitor for a user
 function stopTelegramMonitor(userId) {
   if (userTelegramMonitors[userId]) {
-    console.log(`[TELEGRAM] Stopping monitor for user ${userId}`);
-    userTelegramMonitors[userId].process.kill();
+    console.log(`[TELEGRAM] Stopping Python monitor for user ${userId}`);
+    if (userTelegramMonitors[userId].process) {
+      userTelegramMonitors[userId].process.kill();
+    }
     delete userTelegramMonitors[userId];
   }
 }
